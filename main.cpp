@@ -72,7 +72,7 @@ int main() {
     while (true) {
         ret = recvfrom(s,buffer,bufsiz,0,(sockaddr*)&sin,&siz);
         if (ret > 0) {
-            procpkt(buffer,ret);
+            protocols::EtherII(buffer);
         }
     }
 

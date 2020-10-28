@@ -9,7 +9,7 @@
 #include <ostream>
 #include "netincl.h"
 #include "structs.h"
-
+#include "protos.h"
 using namespace std;
 
 
@@ -20,17 +20,48 @@ char* tomac(const uint8_t* mac)
     memcpy(ea.ether_addr_octet,mac,6);
     return ether_ntoa(&ea);
 }
+char* toip(const uint32_t* ip) {
+    in_addr i;
+    memcpy(&i.s_addr,ip,32/8);
+    return inet_ntoa(i);
+}
 
 
-void procpkt(uint8_t* buf,int siz) {
-    eth_hdr* ethernet_header = (eth_hdr*)buf;
-    uint16_t ethtype = ntohs(ethernet_header->ethertype);
-    if (ethtype <= 1500) { //ethtype is size
-        //cout << "EtherSize: " << ethtype << endl;
-        return;
-    } else if (ethtype >= 1536) { //ethtype is proto
-        cout << "EtherType: " << ethtype << endl;
+
+
+namespace protocols {
+
+    void IPv4(uint8_t* buf) {
+
+        ip_hdr* iphdr = (ip_hdr*)buf;
+        cout << " IPv4 " << toip(&iphdr->src) << "->" << toip(&iphdr->dst) << " proto:" << (int)iphdr->proto;
+
     }
+
+
+
+
+
+
+    void EtherII(uint8_t* buf) {
+        eth_hdr* ethernet_header = (eth_hdr*)buf;
+        uint16_t ethtype = ntohs(ethernet_header->ethertype);
+        cout << "EtherII " << tomac(ethernet_header->smac) << "->" << tomac(ethernet_header->dmac);
+
+        if (ethtype <= 1500) { //ethtype is size
+            return;
+        }
+
+
+        if (ethtype >= 1536) { //ethtype is proto
+            if (ethtype == ETHERTYPE_IP) {
+        
+                IPv4((uint8_t*)&ethernet_header->payload);
+        
+            }
+        }
+        cout << endl;
     
     
+    }
 }

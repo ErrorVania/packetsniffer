@@ -1,6 +1,6 @@
 #pragma once
 #include <iostream>
-
+#include "endianness.h"
 
 
 struct eth_hdr
@@ -32,4 +32,27 @@ struct arp_hdr {
     uint8_t targethardwareaddr[6];
     uint8_t targetprotoaddr[4];
 
+};
+
+struct ip_hdr {
+#ifdef LITTLEENDIAN
+	uint8_t ihl : 4,
+		version : 4;
+
+#elif defined(BIGENDIAN)
+	uint8_t version : 4,
+		ihl : 4;
+#endif
+
+	uint8_t tos;
+
+	uint16_t total_len, ident;
+
+	uint16_t flag_frag;
+
+
+	uint8_t ttl, proto;
+
+	uint16_t header_chksum;
+	uint32_t src, dst;
 };
