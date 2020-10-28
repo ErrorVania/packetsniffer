@@ -39,8 +39,19 @@ namespace protocols {
     }
 
 
+    void ARP(uint8_t* buf) {
+        arp_hdr* arphdr = (arp_hdr*)buf;
+        //cout << " ARP " << htons(arphdr->htype) << " " << htons(arphdr->oper);
+        cout << " ARP ";
+        if (htons(arphdr->htype) == 1)
+            cout << "Ethernet ";
+        if (htons(arphdr->oper) == 1)
+            cout << "Request";
+        else
+            cout << "Reply";
 
-
+        cout << " SPA:" << toip((uint32_t*)&arphdr->senderprotoaddr);
+    }
 
 
     void EtherII(uint8_t* buf) {
@@ -55,9 +66,10 @@ namespace protocols {
 
         if (ethtype >= 1536) { //ethtype is proto
             if (ethtype == ETHERTYPE_IP) {
-        
                 IPv4((uint8_t*)&ethernet_header->payload);
-        
+            }
+            if (ethtype == ETHERTYPE_ARP) {
+                ARP((uint8_t*)&ethernet_header->payload);
             }
         }
         cout << endl;

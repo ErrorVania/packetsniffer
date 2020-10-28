@@ -3,9 +3,11 @@
 #include <sys/ioctl.h>
 #include <string.h>
 #include <unistd.h>
-
+#include <fstream>
+#include "pcapmaker.h"
 #include "netincl.h"
 #include "pktproc.h"
+#include <chrono>
 
 
 using namespace std;
@@ -67,24 +69,37 @@ int main() {
     sockaddr_in sin;
     uint siz = sizeof(sin);
     //netcode
-    
-    
-    while (true) {
+
+
+#if defined(LOGGING)
+    ofstream pcap("sniffer.pcap",ios::binary | ios::out);
+    pcap_write_glob_hdr(pcap);
+
+    auto start = chrono::steady_clock::now();
+
+    for (int i = 0; i < 0xffff; i++) {
+        ret = recvfrom(s,buffer,bufsiz,0,(sockaddr*)&sin,&siz);
+        if (ret > 0) {
+            pcap_pak_hdr hdr;
+            auto end = chrono::steady_clock::now();
+            hdr.ts_sec = chrono::duration_cast<chrono::seconds>(end-start).count();
+            hdr.ts_usec = chrono::duration_cast<chrono::microseconds>(end-start).count();
+            hdr.incl_len = hdr.orig_len = ret;
+            pcap_write_pkt(pcap,&hdr,buffer,ret);
+
+
+            protocols::EtherII(buffer);
+        }
+    }
+#else
+    for (int i = 0; i < 0xffff; i++) {
         ret = recvfrom(s,buffer,bufsiz,0,(sockaddr*)&sin,&siz);
         if (ret > 0) {
             protocols::EtherII(buffer);
         }
     }
-
-
-    
-
-
-
-
-
+#endif
     //netcode end
-
 
     ifreq a;
     memset(&a,0,sizeof(a));
