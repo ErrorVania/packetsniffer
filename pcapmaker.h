@@ -54,3 +54,34 @@ void pcap_write_pkt(std::ofstream& file, pcap_pak_hdr* hdr, void* buf,int siz) {
     file.write((const char*)buf,siz);
 
 }
+
+
+
+class PcapFile {
+private:
+    std::ofstream pcapfile;
+    bool isopen;
+
+public:
+
+    void open(const char *s) {
+        PcapFile(s);
+    }
+
+    PcapFile() {
+        isopen = false;
+    }
+    PcapFile(const char* filename) {
+        pcapfile.open(filename,std::ios::binary | std::ios::out);
+        isopen = true;
+        if (pcapfile.fail()) {
+            throw std::runtime_error("pcap file couldnt be created");
+        }
+
+    }
+
+
+
+
+
+};
