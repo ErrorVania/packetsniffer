@@ -26,7 +26,8 @@ void procpkt(uint8_t* buf,int siz) {
     eth_hdr* ethernet_header = (eth_hdr*)buf;
     uint16_t ethtype = ntohs(ethernet_header->ethertype);
     if (ethtype <= 1500) { //ethtype is size
-        cout << "EtherSize: " << ethtype << endl;
+        //cout << "EtherSize: " << ethtype << endl;
+        return;
     } else if (ethtype >= 1536) { //ethtype is proto
         cout << "EtherType: " << ethtype << endl;
     }
