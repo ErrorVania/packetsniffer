@@ -10,6 +10,7 @@
 #include "netincl.h"
 #include "structs.h"
 #include "protos.h"
+#include <bitset>
 using namespace std;
 
 
@@ -31,17 +32,33 @@ char* toip(const uint32_t* ip) {
 
 namespace protocols {
 
+    void UDP(uint8_t* buf) {
+        udp_hdr* udphdr = (udp_hdr*)buf;
+        cout << " UDP Port" << ntohs(udphdr->dstport) << " " << ntohs(udphdr->length) << " bytes";
+    }
+    void TCP(uint8_t* buf) {
+        tcp_hdr* tcphdr = (tcp_hdr*)buf;
+        cout << " TCP ";
+        std::bitset<8> a(tcphdr->flags);
+        cout << a << " Port " << ntohs(tcphdr->dstport) << " Len " << tcphdr->size*4;
+
+    }
+
     void IPv4(uint8_t* buf) {
 
         ip_hdr* iphdr = (ip_hdr*)buf;
-        cout << " IPv4 " << toip(&iphdr->src) << "->" << toip(&iphdr->dst) << " proto:" << (int)iphdr->proto;
+        cout << " IPv4 " << toip(&iphdr->src) << "->" << toip(&iphdr->dst);
+        if (iphdr->proto == 0x11) {
+            UDP(buf + iphdr->ihl*4);
+        } else if (iphdr->proto == 0x06) {
+            TCP(buf + iphdr->ihl);
+        }
 
     }
 
 
     void ARP(uint8_t* buf) {
         arp_hdr* arphdr = (arp_hdr*)buf;
-        //cout << " ARP " << htons(arphdr->htype) << " " << htons(arphdr->oper);
         cout << " ARP ";
         if (htons(arphdr->htype) == 1)
             cout << "Ethernet ";
