@@ -1,28 +1,84 @@
+#include "netincl.h"
+#include "pcapmaker.h"
+#include "pktproc.h"
+#include "pcapmaker.h"
 #include <iostream>
 #include <cstdlib>
 #include <sys/ioctl.h>
-#include <string.h>
 #include <unistd.h>
-#include <fstream>
-#include "pcapmaker.h"
-#include "pktproc.h"
-#include "netincl.h"
-#include "pcapmaker.h"
-
 
 using namespace std;
+
+
+#define minimum_args 2
+/*
+-i
+interface
+-l
+name
+
+*/
 
 void err(const char* extra) {
     cerr << errno << " " << strerror(errno) << " " << extra << endl;
     exit(errno);
 }
 
-int main() {
-    const int bufsiz = 0xffff;
-    uint8_t* buffer = (uint8_t*)malloc(bufsiz);
-    if (buffer <= 0) {
-        err("malloc");
+int main(int argc, char **argv) {
+
+    if (argc-1 < minimum_args) {
+        int spaces = strlen(argv[0]) + 8;
+        std::cout << "Insufficient Argmuents" << std::endl
+        << "Usage: " << argv[0] << " -i [interface]" << std::endl;
+        
+        for (int i = 0; i < spaces; i++) {
+            std::cout << " ";
+        }
+        std::cout << "-l {log file}" << std::endl;
+        return argc-1;
     }
+
+
+
+
+
+    //get iface
+
+
+    char ifacename[IFNAMSIZ-1];
+    char logfile[PATH_MAX];
+    memset(ifacename,0,IFNAMSIZ-1);
+    memset(logfile,0,PATH_MAX);
+
+    bool flag_iface = false;
+    bool flag_logfile = false;
+
+    for (int i = 0; i < argc; i++) {
+        if (!strcmp(argv[i],"-i")) {
+            if (i + 1 < argc) {
+                strcpy(ifacename, argv[i + 1]);
+                flag_iface = true;
+            }
+        }
+        if (!strcmp(argv[i],"-l")) {
+            if (i + 1 < argc) {
+                strcpy(logfile, argv[i+1]);
+                strcat(logfile,".pcap");
+                flag_logfile = true;
+            }
+        }
+    }
+
+    if (!flag_iface) {
+        std::cout << "Missing Interface" << std::endl;
+        return argc-1;
+    } else {
+        //check if interface exists / is valid
+    }
+
+
+
+
 
 
 
@@ -34,7 +90,7 @@ int main() {
 
     ifreq ifstr;
     memset(&ifstr,0,sizeof(ifreq));
-    strncpy(ifstr.ifr_ifrn.ifrn_name,"wlan0",IFNAMSIZ-1);
+    strncpy(ifstr.ifr_ifrn.ifrn_name,ifacename,IFNAMSIZ-1);
 
 
     if (ioctl(s,SIOCGIFINDEX,&ifstr) == -1) {
@@ -63,32 +119,47 @@ int main() {
     }
 
 
-    int slctVal, ret;
-    timeval tv;
+    const int bufsiz = 0xffff;
+    uint8_t* buffer = (uint8_t*)malloc(bufsiz);
+    if (buffer <= 0) {
+        err("malloc");
+    }
+
+    int ret;
     sockaddr_in sin;
     uint siz = sizeof(sin);
     //netcode
 
-#define LOGGING 1
-#ifdef LOGGING
-    PcapFile pfile;
-    pfile.open("log.pcap");
 
-    for (int i = 0; i < 0xffff; i++) {
-        ret = recvfrom(s,buffer,bufsiz,0,(sockaddr*)&sin,&siz);
-        if (ret > 0) {
-            pfile.write_pkt(buffer,ret);
-            protocols::EtherII(buffer);
+
+
+
+
+
+
+
+    if (flag_logfile) {
+        PcapFile pfile;
+        pfile.open(logfile);
+
+        while (1) {
+            ret = recvfrom(s,buffer,bufsiz,0,(sockaddr*)&sin,&siz);
+            if (ret > 0) {
+                pfile.write_pkt(buffer,ret);
+                protocols::EtherII(buffer);
+            }
+        }
+    } else {
+        for (int i = 0; i < 0xffff; i++) {
+            ret = recvfrom(s,buffer,bufsiz,0,(sockaddr*)&sin,&siz);
+            if (ret > 0) {
+                protocols::EtherII(buffer);
+            }
         }
     }
-#else
-    for (int i = 0; i < 0xffff; i++) {
-        ret = recvfrom(s,buffer,bufsiz,0,(sockaddr*)&sin,&siz);
-        if (ret > 0) {
-            protocols::EtherII(buffer);
-        }
-    }
-#endif
+
+
+
     //netcode end
 
     ifreq a;
