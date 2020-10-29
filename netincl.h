@@ -5,4 +5,5 @@
 #include <net/if.h>
 #include <netinet/ether.h>
 #include <linux/if_packet.h>
-#include <linux/if_ether.h>
+//#include <linux/if_ether.h>
+#include <net/ethernet.h>

@@ -5,9 +5,9 @@
 #include <unistd.h>
 #include <fstream>
 #include "pcapmaker.h"
-#include "netincl.h"
 #include "pktproc.h"
-#include <chrono>
+#include "netincl.h"
+#include "pcapmaker.h"
 
 
 using namespace std;
@@ -23,7 +23,6 @@ int main() {
     if (buffer <= 0) {
         err("malloc");
     }
-
 
 
 
@@ -70,24 +69,15 @@ int main() {
     uint siz = sizeof(sin);
     //netcode
 
-
-#if defined(LOGGING)
-    ofstream pcap("sniffer.pcap",ios::binary | ios::out);
-    pcap_write_glob_hdr(pcap);
-
-    auto start = chrono::steady_clock::now();
+#define LOGGING 1
+#ifdef LOGGING
+    PcapFile pfile;
+    pfile.open("log.pcap");
 
     for (int i = 0; i < 0xffff; i++) {
         ret = recvfrom(s,buffer,bufsiz,0,(sockaddr*)&sin,&siz);
         if (ret > 0) {
-            pcap_pak_hdr hdr;
-            auto end = chrono::steady_clock::now();
-            hdr.ts_sec = chrono::duration_cast<chrono::seconds>(end-start).count();
-            hdr.ts_usec = chrono::duration_cast<chrono::microseconds>(end-start).count();
-            hdr.incl_len = hdr.orig_len = ret;
-            pcap_write_pkt(pcap,&hdr,buffer,ret);
-
-
+            pfile.write_pkt(buffer,ret);
             protocols::EtherII(buffer);
         }
     }
@@ -104,6 +94,7 @@ int main() {
     ifreq a;
     memset(&a,0,sizeof(a));
     a.ifr_ifru.ifru_flags = orig_flags;
+    a.ifr_ifru.ifru_ivalue = ifidex;
     if (ioctl(s,SIOCSIFFLAGS,&ifstr) == -1) {
         err("ioctl");
     }
