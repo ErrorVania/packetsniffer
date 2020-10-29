@@ -7,6 +7,7 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include "helpers.h"
+#include <signal.h>
 
 
 
@@ -18,6 +19,12 @@ interface
 name
 */
 
+
+uint32_t captured;
+void sHandle(int s) {
+    std::cout << "\rCaptured " << captured << " Frames" << std::endl;
+    exit(0);
+}
 
 int main(int argc, char **argv) {
 
@@ -52,7 +59,6 @@ int main(int argc, char **argv) {
         if (!strcmp(argv[i],"-l")) {
             if (i + 1 < argc) {
                 strcpy(logfile, argv[i+1]);
-                //strcat(logfile,".pcap");
                 flag_logfile = true;
             }
         }
@@ -111,34 +117,30 @@ int main(int argc, char **argv) {
     sockaddr_in sin;
     uint siz = sizeof(sin);
     
-    
-    
-
-
 
     //Start sniffing
+
+    signal(SIGINT,sHandle);
 
     if (flag_logfile) {
         PcapFile pfile;
         pfile.open(logfile);
 
-        while (1) {
+        for (captured = 0;;captured++) {
             ret = recvfrom(s,buffer,bufsiz,0,(sockaddr*)&sin,&siz);
             if (ret > 0) {
                 pfile.write_pkt(buffer,ret);
-                protocols::EtherII(buffer);
+                //protocols::EtherII(buffer);
             }
         }
     } else {
-        while (1) {
+        for (captured = 0;;captured++) {
             ret = recvfrom(s,buffer,bufsiz,0,(sockaddr*)&sin,&siz);
             if (ret > 0) {
                 protocols::EtherII(buffer);
             }
         }
     }
-
-
 
 
     ifreq a;
