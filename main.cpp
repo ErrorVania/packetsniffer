@@ -16,13 +16,8 @@ using namespace std;
 interface
 -l
 name
-
 */
 
-void err(const char* extra) {
-    cerr << errno << " " << strerror(errno) << " " << extra << endl;
-    exit(errno);
-}
 
 int main(int argc, char **argv) {
 
@@ -39,11 +34,7 @@ int main(int argc, char **argv) {
     }
 
 
-
-
-
     //get iface
-
 
     char ifacename[IFNAMSIZ-1];
     char logfile[PATH_MAX];
@@ -72,8 +63,6 @@ int main(int argc, char **argv) {
     if (!flag_iface) {
         std::cout << "Missing Interface" << std::endl;
         return argc-1;
-    } else {
-        //check if interface exists / is valid
     }
 
 
@@ -84,7 +73,8 @@ int main(int argc, char **argv) {
 
     int s = socket(PF_PACKET,SOCK_RAW,htons(ETH_P_ALL));
     if (s == -1) {
-        err("socket");
+        std::cout << "Could not create raw socket: " << strerror(errno) << " (" << errno << ")" << std::endl;
+        return 1;
     }
 
 
@@ -94,35 +84,41 @@ int main(int argc, char **argv) {
 
 
     if (ioctl(s,SIOCGIFINDEX,&ifstr) == -1) {
-        err("ioctl");
+        std::cout << "IOCTL could not get interface index: " << strerror(errno) << " (" << errno << ")" << std::endl;
+        return 1;
     }
-    int ifidex = ifstr.ifr_ifru.ifru_ivalue;
-    cout << "iface id: " << ifidex << endl;
-    
 
+    
+    int ifidex = ifstr.ifr_ifru.ifru_ivalue;
+    
     sockaddr_ll sll;
     sll.sll_family = PF_PACKET;
     sll.sll_protocol = htons(ETH_P_ALL);
     sll.sll_ifindex = ifidex;
     if (bind(s,(sockaddr*)&sll,sizeof(sll)) == -1) {
-        err("bind");
+        std::cout << "Could not bind socket to interface '" << ifacename << "' " << strerror(errno) << " (" << errno << ")" << std::endl;
+        return 1;
     }
 
 
     if (ioctl(s,SIOCGIFFLAGS,&ifstr) == -1) {
-        err("ioctl");
+        std::cout << "IOCTL could not get interface flags from: '" << ifacename << "' " << strerror(errno) << " (" << errno << ")" << std::endl;
+        return 1;
+
     }
     auto orig_flags = ifstr.ifr_ifru.ifru_flags;
     ifstr.ifr_ifru.ifru_flags = orig_flags | IFF_PROMISC | IFF_UP;
     if (ioctl(s,SIOCSIFFLAGS,&ifstr) == -1) {
-        err("ioctl");
+        std::cout << "IOCTL could not set interface flags from: '" << ifacename << "' " << strerror(errno) << " (" << errno << ")" << std::endl;
+        return 1;
     }
 
 
     const int bufsiz = 0xffff;
     uint8_t* buffer = (uint8_t*)malloc(bufsiz);
     if (buffer <= 0) {
-        err("malloc");
+        std::cout << "Could not allocate " << bufsiz << " bytes of memory" << std::endl;
+        return 1;
     }
 
     int ret;
@@ -167,8 +163,9 @@ int main(int argc, char **argv) {
     a.ifr_ifru.ifru_flags = orig_flags;
     a.ifr_ifru.ifru_ivalue = ifidex;
     if (ioctl(s,SIOCSIFFLAGS,&ifstr) == -1) {
-        err("ioctl");
+        std::cout << "IOCTL could not set interface flags from: '" << ifacename << "' " << strerror(errno) << " (" << errno << ")" << std::endl;
     }
     free(buffer);
     close(s);
+    return 0;
 }
