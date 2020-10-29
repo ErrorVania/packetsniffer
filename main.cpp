@@ -61,7 +61,7 @@ int main(int argc, char **argv) {
     }
 
     if (!flag_iface) {
-        std::cout << "Missing Interface" << std::endl;
+        std::cout << "No interface specified" << std::endl;
         return argc-1;
     }
 
