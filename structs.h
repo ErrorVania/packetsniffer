@@ -57,7 +57,7 @@ struct ip_hdr {
 	uint32_t src, dst;
 };
 
-struct tcp_hdr {
+struct tcp_hdr { //needs work!
     uint16_t srcport, dstport;
     uint32_t seq, ack_num;
     uint8_t size; //in 32-bit words
