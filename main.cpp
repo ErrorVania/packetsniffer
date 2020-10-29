@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
         if (!strcmp(argv[i],"-l")) {
             if (i + 1 < argc) {
                 strcpy(logfile, argv[i+1]);
-                strcat(logfile,".pcap");
+                //strcat(logfile,".pcap");
                 flag_logfile = true;
             }
         }

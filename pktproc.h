@@ -9,7 +9,6 @@
 #include <ostream>
 #include "netincl.h"
 #include "structs.h"
-#include "protos.h"
 #include <bitset>
 using namespace std;
 
