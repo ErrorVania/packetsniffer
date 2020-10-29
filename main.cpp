@@ -140,7 +140,7 @@ int main(int argc, char **argv) {
             }
         }
     } else {
-        for (int i = 0; i < 0xffff; i++) {
+        while (1) {
             ret = recvfrom(s,buffer,bufsiz,0,(sockaddr*)&sin,&siz);
             if (ret > 0) {
                 protocols::EtherII(buffer);
