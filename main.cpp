@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <sys/ioctl.h>
 #include <unistd.h>
+#include "helpers.h"
 
 
 
@@ -76,25 +77,14 @@ int main(int argc, char **argv) {
 
     ifreq ifstr;
     memset(&ifstr,0,sizeof(ifreq));
-    strncpy(ifstr.ifr_ifrn.ifrn_name,ifacename,IFNAMSIZ-1);
-
-
-    if (ioctl(s,SIOCGIFINDEX,&ifstr) == -1) {
-        std::cout << "IOCTL could not get interface index: " << strerror(errno) << " (" << errno << ")" << std::endl;
-        return 1;
-    }
-
     
+
+
+    getIfaceIndex(s,ifacename,&ifstr);
     int ifidex = ifstr.ifr_ifru.ifru_ivalue;
     
-    sockaddr_ll sll;
-    sll.sll_family = PF_PACKET;
-    sll.sll_protocol = htons(ETH_P_ALL);
-    sll.sll_ifindex = ifidex;
-    if (bind(s,(sockaddr*)&sll,sizeof(sll)) == -1) {
-        std::cout << "Could not bind socket to interface '" << ifacename << "' " << strerror(errno) << " (" << errno << ")" << std::endl;
-        return 1;
-    }
+    BindToInterface(s,PF_PACKET,htons(ETH_P_ALL),ifidex);
+    
 
 
     if (ioctl(s,SIOCGIFFLAGS,&ifstr) == -1) {
