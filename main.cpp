@@ -7,7 +7,6 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-using namespace std;
 
 
 #define minimum_args 2
@@ -21,6 +20,7 @@ name
 
 int main(int argc, char **argv) {
 
+    //Gather arguments
     if (argc-1 < minimum_args) {
         int spaces = strlen(argv[0]) + 8;
         std::cout << "Insufficient Argmuents" << std::endl
@@ -32,9 +32,6 @@ int main(int argc, char **argv) {
         std::cout << "-l {log file}" << std::endl;
         return argc-1;
     }
-
-
-    //get iface
 
     char ifacename[IFNAMSIZ-1];
     char logfile[PATH_MAX];
@@ -69,8 +66,7 @@ int main(int argc, char **argv) {
 
 
 
-
-
+    //setup socket and hardware
     int s = socket(PF_PACKET,SOCK_RAW,htons(ETH_P_ALL));
     if (s == -1) {
         std::cout << "Could not create raw socket: " << strerror(errno) << " (" << errno << ")" << std::endl;
@@ -124,15 +120,13 @@ int main(int argc, char **argv) {
     int ret;
     sockaddr_in sin;
     uint siz = sizeof(sin);
-    //netcode
+    
+    
+    
 
 
 
-
-
-
-
-
+    //Start sniffing
 
     if (flag_logfile) {
         PcapFile pfile;
@@ -156,7 +150,6 @@ int main(int argc, char **argv) {
 
 
 
-    //netcode end
 
     ifreq a;
     memset(&a,0,sizeof(a));
