@@ -72,6 +72,7 @@ public:
         hdr.ts_sec = std::chrono::duration_cast<std::chrono::seconds>(ts_end-ts_start).count();
         hdr.ts_usec = std::chrono::duration_cast<std::chrono::microseconds>(ts_end-ts_start).count();
         hdr.incl_len = hdr.orig_len = len;
+        pcap::pcap_write_pkt(pcapfile,&hdr,buf,len);
     }
 
     void close() {
