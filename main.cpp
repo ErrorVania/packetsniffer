@@ -107,10 +107,10 @@ int main(int argc, char **argv) {
     signal(SIGINT,sHandle);
 
     PcapFile pfile;
+    eth_hdr* t = (eth_hdr*)buffer;
     if (flag_logfile) {
         pfile.open(logfile);
     }
-    eth_hdr* t = (eth_hdr*)buffer;
 
     for (captured = 0;;captured++) {
         ret = recv(s,buffer,bufsiz,0);
