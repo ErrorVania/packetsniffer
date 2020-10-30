@@ -14,7 +14,7 @@ int getIfaceIndex(int sock, const char* ifacename, ifreq* ifstr) {
     strncpy(ifstr->ifr_ifrn.ifrn_name,ifacename,IFNAMSIZ-1);
 
     if (ioctl(sock,SIOCGIFINDEX,ifstr) == -1) {
-        std::cerr << "IOCTL could not get interface index: " << strerror(errno) << " (" << errno << ")" << std::endl;
+        std::cerr << "IOCTL could not get interface index of " << ifacename << ": " << strerror(errno) << " (" << errno << ")" << std::endl;
         exit(1);
     }
     return ifstr->ifr_ifru.ifru_ivalue;

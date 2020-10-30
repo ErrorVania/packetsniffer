@@ -11,13 +11,6 @@
 
 
 #define bufsiz 0xffff
-#define minimum_args 2
-/*
--i
-interface
--l
-name
-*/
 
 
 uint32_t captured;
@@ -29,44 +22,34 @@ void sHandle(int s) {
 int main(int argc, char **argv) {
 
     //Gather arguments
-    if (argc-1 < minimum_args) {
-        int spaces = strlen(argv[0]) + 8;
-        std::cout << "Insufficient Argmuents" << std::endl
-        << "Usage: " << argv[0] << " -i [interface]" << std::endl;
-        
-        for (int i = 0; i < spaces; i++) {
-            std::cout << " ";
-        }
-        std::cout << "-l {log file}" << std::endl;
-        return argc-1;
-    }
-
-    char ifacename[IFNAMSIZ-1];
-    char logfile[PATH_MAX];
-    memset(ifacename,0,IFNAMSIZ-1);
-    memset(logfile,0,PATH_MAX);
 
     bool flag_iface = false;
     bool flag_logfile = false;
+    char ifacename[IFNAMSIZ-1];
+    char logfile[PATH_MAX];
 
-    for (int i = 0; i < argc; i++) {
-        if (!strcmp(argv[i],"-i")) {
-            if (i + 1 < argc) {
-                strcpy(ifacename, argv[i + 1]);
+    for (int c = -2; c != -1; c = getopt(argc,argv,"i:l:h")) {
+        switch (c) {
+            case 'i':
+                strcpy(ifacename,optarg);
                 flag_iface = true;
-            }
-        }
-        if (!strcmp(argv[i],"-l")) {
-            if (i + 1 < argc) {
-                strcpy(logfile, argv[i+1]);
+                break;
+            case 'l':
+                strcpy(logfile,optarg);
                 flag_logfile = true;
-            }
+                break;
+            case 'h':
+                std::cout << "i --- Sets target interface" << std::endl << "l --- Enable logging" << std::endl << "h --- display this message" << std::endl << "o --- filter only outgoing frames" << std::endl << "r --- filter only incoming frames" << std::endl;
+                break;
+            case '?':
+                return 1;
+
         }
     }
 
     if (!flag_iface) {
-        std::cout << "No interface specified" << std::endl;
-        return argc-1;
+        std::cerr << "No interface specified." << std::endl;
+        exit(1);
     }
 
 
@@ -76,7 +59,7 @@ int main(int argc, char **argv) {
     //setup socket and hardware
     int s = socket(PF_PACKET,SOCK_RAW,htons(ETH_P_ALL));
     if (s == -1) {
-        std::cout << "Could not create raw socket: " << strerror(errno) << " (" << errno << ")" << std::endl;
+        std::cerr << "Could not create raw socket: " << strerror(errno) << " (" << errno << ")" << std::endl;
         return 1;
     }
 
