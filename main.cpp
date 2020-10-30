@@ -106,55 +106,34 @@ int main(int argc, char **argv) {
 
     signal(SIGINT,sHandle);
 
-    if (flag_logfile) {
-        PcapFile pfile;
-        pfile.open(logfile);
+    PcapFile pfile;
+    pfile.open(logfile);
+    eth_hdr* t = (eth_hdr*)buffer;
 
-        for (captured = 0;;captured++) {
-            ret = recv(s,buffer,bufsiz,0);
-            if (ret > 0) {
-                eth_hdr* t = (eth_hdr*)buffer;
-                if (flag_inonly) {
-                    if (strcmp((const char*)t->smac,(const char*)self_mac) != 0) {
+    for (captured = 0;;captured++) {
+        ret = recv(s,buffer,bufsiz,0);
+        if (ret > 0) {
+            if (flag_inonly) {
+                if (memcmp(t->smac,self_mac,6) != 0) {
+                    if (flag_logfile)
                         pfile.write_pkt(buffer,ret);
-                        continue;
-                    }
-                    captured--;
+                    else
+                        protocols::EtherII(buffer);
                     continue;
                 }
-                if (flag_outonly) {
-                    if (strcmp((const char*)t->smac,(const char*)self_mac) == 0) {
-                        pfile.write_pkt(buffer,ret);
-                        continue;
-                    }
-                    captured--;
-                    continue;
-                }
-                //pfile.write_pkt(buffer,ret);
-                //protocols::EtherII(buffer);
+                captured--;
+                continue;
             }
-        }
-    } else {
-        for (captured = 0;;captured++) {
-            ret = recv(s,buffer,bufsiz,0);
-            if (ret > 0) {
-                eth_hdr* t = (eth_hdr*)buffer;
-                if (flag_inonly) {
-                    if (strcmp((const char*)t->smac,(const char*)self_mac) != 0) {
+            if (flag_outonly) {
+                if (memcmp(t->smac,self_mac,6) == 0) {
+                    if (flag_logfile)
+                        pfile.write_pkt(buffer,ret);
+                    else
                         protocols::EtherII(buffer);
-                        continue;
-                    }
-                    captured--;
                     continue;
                 }
-                if (flag_outonly) {
-                    if (strcmp((const char*)t->smac,(const char*)self_mac) == 0) {
-                        protocols::EtherII(buffer);
-                        continue;
-                    }
-                    captured--;
-                    continue;
-                }
+                captured--;
+                continue;
             }
         }
     }
