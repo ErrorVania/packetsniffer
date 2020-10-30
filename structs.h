@@ -56,14 +56,14 @@ struct ip_hdr {
 	uint16_t header_chksum;
 	uint32_t src, dst;
 };
-
-struct tcp_hdr { //needs work!
-    uint16_t srcport, dstport;
-    uint32_t seq, ack_num;
-    uint8_t size; //in 32-bit words
-    uint8_t flags;
-
-
-    uint16_t window_size, chksum, urgent_ptr;
-
+struct tcp_hdr {
+    uint16_t src_port;
+    uint16_t dst_port;
+    uint32_t seq;
+    uint32_t ack;
+    uint8_t  data_offset;  // 4 bits
+    uint8_t  flags;
+    uint16_t window_size;
+    uint16_t checksum;
+    uint16_t urgent_p;
 };

@@ -10,7 +10,7 @@
 #include <signal.h>
 
 
-
+#define bufsiz 0xffff
 #define minimum_args 2
 /*
 -i
@@ -84,29 +84,17 @@ int main(int argc, char **argv) {
     ifreq ifstr;
     memset(&ifstr,0,sizeof(ifreq));
     
-
-
-    getIfaceIndex(s,ifacename,&ifstr);
-    int ifidex = ifstr.ifr_ifru.ifru_ivalue;
+    int ifidex = getIfaceIndex(s,ifacename,&ifstr);
     
     BindToInterface(s,PF_PACKET,htons(ETH_P_ALL),ifidex);
+    getIfaceFlags(s,&ifstr);
+
     
-
-
-    if (ioctl(s,SIOCGIFFLAGS,&ifstr) == -1) {
-        std::cout << "IOCTL could not get interface flags from: '" << ifacename << "' " << strerror(errno) << " (" << errno << ")" << std::endl;
-        return 1;
-
-    }
     auto orig_flags = ifstr.ifr_ifru.ifru_flags;
     ifstr.ifr_ifru.ifru_flags = orig_flags | IFF_PROMISC | IFF_UP;
-    if (ioctl(s,SIOCSIFFLAGS,&ifstr) == -1) {
-        std::cout << "IOCTL could not set interface flags from: '" << ifacename << "' " << strerror(errno) << " (" << errno << ")" << std::endl;
-        return 1;
-    }
+    setIfaceFlags(s,&ifstr);
 
 
-    const int bufsiz = 0xffff;
     uint8_t* buffer = (uint8_t*)malloc(bufsiz);
     if (buffer <= 0) {
         std::cout << "Could not allocate " << bufsiz << " bytes of memory" << std::endl;
@@ -114,8 +102,6 @@ int main(int argc, char **argv) {
     }
 
     int ret;
-    sockaddr_in sin;
-    uint siz = sizeof(sin);
     
 
     //Start sniffing
@@ -127,7 +113,7 @@ int main(int argc, char **argv) {
         pfile.open(logfile);
 
         for (captured = 0;;captured++) {
-            ret = recvfrom(s,buffer,bufsiz,0,(sockaddr*)&sin,&siz);
+            ret = recv(s,buffer,bufsiz,0);
             if (ret > 0) {
                 pfile.write_pkt(buffer,ret);
                 //protocols::EtherII(buffer);
@@ -135,7 +121,7 @@ int main(int argc, char **argv) {
         }
     } else {
         for (captured = 0;;captured++) {
-            ret = recvfrom(s,buffer,bufsiz,0,(sockaddr*)&sin,&siz);
+            ret = recv(s,buffer,bufsiz,0);
             if (ret > 0) {
                 protocols::EtherII(buffer);
             }
@@ -143,13 +129,10 @@ int main(int argc, char **argv) {
     }
 
 
-    ifreq a;
-    memset(&a,0,sizeof(a));
-    a.ifr_ifru.ifru_flags = orig_flags;
-    a.ifr_ifru.ifru_ivalue = ifidex;
-    if (ioctl(s,SIOCSIFFLAGS,&ifstr) == -1) {
-        std::cout << "IOCTL could not set interface flags from: '" << ifacename << "' " << strerror(errno) << " (" << errno << ")" << std::endl;
-    }
+    ifstr.ifr_ifru.ifru_flags = orig_flags;
+    setIfaceFlags(s,&ifstr);
+
+
     free(buffer);
     close(s);
     return 0;

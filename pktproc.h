@@ -39,14 +39,19 @@ namespace protocols {
         tcp_hdr* tcphdr = (tcp_hdr*)buf;
         cout << " TCP ";
         std::bitset<8> a(tcphdr->flags);
-        cout << a << " Port " << ntohs(tcphdr->dstport) << " Len " << tcphdr->size*4;
+        uint hdrsiz = (tcphdr->data_offset >> 4)*4;
+
+        cout << a << " Port " << ntohs(tcphdr->src_port) << " -> " << ntohs(tcphdr->dst_port) << " HDR_LEN: " << (tcphdr->data_offset >> 4)*4;
+
+        ip_hdr* iphdr = (ip_hdr*)(buf-hdrsiz);
+        cout << " Data Size:" << ntohs(iphdr->total_len) - iphdr->ihl*4 - hdrsiz;
 
     }
 
     void IPv4(uint8_t* buf) {
 
         ip_hdr* iphdr = (ip_hdr*)buf;
-        cout << " IPv4 " << toip(&iphdr->src) << "->" << toip(&iphdr->dst);
+        cout << " IPv4 " << toip(&iphdr->src) << "->" << toip(&iphdr->dst) << " Size:" << ntohs(iphdr->total_len);
         if (iphdr->proto == 0x11) {
             UDP(buf + iphdr->ihl*4);
         } else if (iphdr->proto == 0x06) {
@@ -68,6 +73,9 @@ namespace protocols {
 
         cout << " SPA:" << toip((uint32_t*)&arphdr->senderprotoaddr);
     }
+
+
+
 
 
     void EtherII(uint8_t* buf) {
