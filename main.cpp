@@ -25,10 +25,13 @@ int main(int argc, char **argv) {
 
     bool flag_iface = false;
     bool flag_logfile = false;
+    bool flag_outonly = false;
+    bool flag_inonly = false;
+
     char ifacename[IFNAMSIZ-1];
     char logfile[PATH_MAX];
 
-    for (int c = -2; c != -1; c = getopt(argc,argv,"i:l:h")) {
+    for (int c = -2; c != -1; c = getopt(argc,argv,"i:l:hor")) {
         switch (c) {
             case 'i':
                 strcpy(ifacename,optarg);
@@ -38,6 +41,11 @@ int main(int argc, char **argv) {
                 strcpy(logfile,optarg);
                 flag_logfile = true;
                 break;
+            case 'o':
+                flag_outonly = true; //fix this flag!
+                break;
+            case 'r':
+                flag_inonly = true;
             case 'h':
                 std::cout << "i --- Sets target interface" << std::endl << "l --- Enable logging" << std::endl << "h --- display this message" << std::endl << "o --- filter only outgoing frames" << std::endl << "r --- filter only incoming frames" << std::endl;
                 break;
@@ -85,6 +93,13 @@ int main(int argc, char **argv) {
     }
 
     int ret;
+
+
+
+
+    getIfaceMAC(s,&ifstr);
+    unsigned char self_mac[6];
+    memcpy(ifstr.ifr_ifru.ifru_hwaddr.sa_data,self_mac,6);
     
 
     //Start sniffing
@@ -98,7 +113,24 @@ int main(int argc, char **argv) {
         for (captured = 0;;captured++) {
             ret = recv(s,buffer,bufsiz,0);
             if (ret > 0) {
-                pfile.write_pkt(buffer,ret);
+                eth_hdr* t = (eth_hdr*)buffer;
+                if (flag_inonly) {
+                    if (strcmp((const char*)t->smac,(const char*)self_mac) != 0) {
+                        pfile.write_pkt(buffer,ret);
+                        continue;
+                    }
+                    captured--;
+                    continue;
+                }
+                if (flag_outonly) {
+                    if (strcmp((const char*)t->smac,(const char*)self_mac) == 0) {
+                        pfile.write_pkt(buffer,ret);
+                        continue;
+                    }
+                    captured--;
+                    continue;
+                }
+                //pfile.write_pkt(buffer,ret);
                 //protocols::EtherII(buffer);
             }
         }
@@ -106,7 +138,23 @@ int main(int argc, char **argv) {
         for (captured = 0;;captured++) {
             ret = recv(s,buffer,bufsiz,0);
             if (ret > 0) {
-                protocols::EtherII(buffer);
+                eth_hdr* t = (eth_hdr*)buffer;
+                if (flag_inonly) {
+                    if (strcmp((const char*)t->smac,(const char*)self_mac) != 0) {
+                        protocols::EtherII(buffer);
+                        continue;
+                    }
+                    captured--;
+                    continue;
+                }
+                if (flag_outonly) {
+                    if (strcmp((const char*)t->smac,(const char*)self_mac) == 0) {
+                        protocols::EtherII(buffer);
+                        continue;
+                    }
+                    captured--;
+                    continue;
+                }
             }
         }
     }
