@@ -107,7 +107,9 @@ int main(int argc, char **argv) {
     signal(SIGINT,sHandle);
 
     PcapFile pfile;
-    pfile.open(logfile);
+    if (flag_logfile) {
+        pfile.open(logfile);
+    }
     eth_hdr* t = (eth_hdr*)buffer;
 
     for (captured = 0;;captured++) {
