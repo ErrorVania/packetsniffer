@@ -54,7 +54,12 @@ int main(int argc, char **argv) {
                 flag_limit = true;
                 break;
             case 'h':
-                std::cout << "i --- Sets target interface" << std::endl << "l --- Enable logging" << std::endl << "h --- display this message" << std::endl << "o --- filter only outgoing frames" << std::endl << "r --- filter only incoming frames" << std::endl;
+                std::cout << "i --- Sets target interface" << std::endl 
+                        << "l --- Enable logging" << std::endl 
+                        << "h --- display this message" << std::endl 
+                        << "o --- filter only outgoing frames" << std::endl 
+                        << "r --- filter only incoming frames" << std::endl
+                        << "n --- capture x frames" << std::endl;
                 return 0;
             case '?':
                 return 1;
