@@ -67,3 +67,9 @@ struct tcp_hdr {
     uint16_t checksum;
     uint16_t urgent_p;
 };
+
+struct icmp_hdr {
+    uint8_t type, code;
+    uint16_t chksum;
+    uint32_t rest;
+};
