@@ -5,10 +5,10 @@
 
 struct eth_hdr
 {
-    unsigned char dmac[6];
-    unsigned char smac[6];
+    uint8_t dmac[6];
+    uint8_t smac[6];
     uint16_t ethertype;
-    unsigned char payload[];
+    uint8_t payload[];
 };
 
 struct udp_hdr {
@@ -43,29 +43,18 @@ struct ip_hdr {
 	uint8_t version : 4,
 		ihl : 4;
 #endif
-
 	uint8_t tos;
-
 	uint16_t total_len, ident;
-
 	uint16_t flag_frag;
-
-
 	uint8_t ttl, proto;
-
 	uint16_t header_chksum;
 	uint32_t src, dst;
 };
 struct tcp_hdr {
-    uint16_t src_port;
-    uint16_t dst_port;
-    uint32_t seq;
-    uint32_t ack;
-    uint8_t  data_offset;  // 4 bits
-    uint8_t  flags;
-    uint16_t window_size;
-    uint16_t checksum;
-    uint16_t urgent_p;
+    uint16_t src_port, dst_port;
+    uint32_t seq, ack;
+    uint8_t data_offset, flags;
+    uint16_t window_size, chksum, urgentptr;
 };
 
 struct icmp_hdr {
