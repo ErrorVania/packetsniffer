@@ -62,3 +62,15 @@ struct icmp_hdr {
     uint16_t chksum;
     uint32_t rest;
 };
+
+struct ip6_hdr {
+    unsigned int
+        version : 4,
+        traffic_class : 8,
+        flow_label : 20;
+    uint16_t length;
+    uint8_t next_header;
+    uint8_t ttl;
+    struct in6_addr src;
+    struct in6_addr dst;
+};

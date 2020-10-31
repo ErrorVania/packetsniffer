@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
     char ifacename[IFNAMSIZ-1];
     char logfile[PATH_MAX];
 
-    for (int c = -2; c != -1; c = getopt(argc,argv,"i:l:horn:")) {
+    for (int c = -2; c != -1; c = getopt(argc,argv,"i:l:n:hor")) {
         switch (c) {
             case 'i':
                 strcpy(ifacename,optarg);
@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
                 flag_logfile = true;
                 break;
             case 'o':
-                flag_outonly = true; //fix this flag!
+                flag_outonly = true;
                 break;
             case 'r':
                 flag_inonly = true;
