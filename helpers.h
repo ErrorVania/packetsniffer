@@ -32,7 +32,7 @@ void setIfaceFlags(int sock, ifreq* ifstr) {
     }
 }
 void getIfaceMAC(int sock, ifreq* ifstr) {
-    if (ioctl(sock, SIOCGIFHWADDR, ifstr) == 1) {
+    if (ioctl(sock, SIOCGIFHWADDR, ifstr) == -1) {
         std::cerr << "IOCTL could not get MAC of interface : " << strerror(errno) << " (" << errno << ")" << std::endl;
         exit(1);
     }

@@ -14,8 +14,7 @@ using namespace std;
 
 
 
-char* tomac(const uint8_t* mac)
-{
+char* tomac(void* mac) {
     ether_addr ea;
     memcpy(ea.ether_addr_octet,mac,6);
     return ether_ntoa(&ea);

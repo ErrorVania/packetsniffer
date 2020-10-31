@@ -27,11 +27,13 @@ int main(int argc, char **argv) {
     bool flag_logfile = false;
     bool flag_outonly = false;
     bool flag_inonly = false;
+    bool flag_limit = false;
+    int maxcap = 0;
 
     char ifacename[IFNAMSIZ-1];
     char logfile[PATH_MAX];
 
-    for (int c = -2; c != -1; c = getopt(argc,argv,"i:l:hor")) {
+    for (int c = -2; c != -1; c = getopt(argc,argv,"i:l:horn:")) {
         switch (c) {
             case 'i':
                 strcpy(ifacename,optarg);
@@ -46,9 +48,14 @@ int main(int argc, char **argv) {
                 break;
             case 'r':
                 flag_inonly = true;
+                break;
+            case 'n':
+                maxcap = stoi(optarg);
+                flag_limit = true;
+                break;
             case 'h':
                 std::cout << "i --- Sets target interface" << std::endl << "l --- Enable logging" << std::endl << "h --- display this message" << std::endl << "o --- filter only outgoing frames" << std::endl << "r --- filter only incoming frames" << std::endl;
-                break;
+                return 0;
             case '?':
                 return 1;
 
@@ -98,9 +105,7 @@ int main(int argc, char **argv) {
 
 
     getIfaceMAC(s,&ifstr);
-    unsigned char self_mac[6];
-    memcpy(ifstr.ifr_ifru.ifru_hwaddr.sa_data,self_mac,6);
-    
+    const char* self_mac = ifstr.ifr_ifru.ifru_hwaddr.sa_data;
 
     //Start sniffing
 
@@ -112,35 +117,35 @@ int main(int argc, char **argv) {
         pfile.open(logfile);
     }
 
-    for (captured = 0;;captured++) {
+    captured = 0;
+    while (true) {
         ret = recv(s,buffer,bufsiz,0);
-        if (ret > 0) {
-            if (flag_inonly) {
-                if (memcmp(t->smac,self_mac,6) != 0) {
-                    if (flag_logfile)
-                        pfile.write_pkt(buffer,ret);
-                    else
-                        protocols::EtherII(buffer);
-                    continue;
-                }
-                captured--;
-                continue;
+        if (ret <= 0) continue;
+        if (captured == maxcap && flag_limit) break;
+
+
+        if (flag_inonly == false && flag_outonly == false) {
+            if (flag_logfile) pfile.write_pkt(buffer,ret); else protocols::EtherII(buffer); 
+            captured++;
+            continue;
+        }
+
+
+        if (flag_inonly) {
+            if (memcmp(t->smac,self_mac,6) != 0) {
+                if (flag_logfile) pfile.write_pkt(buffer,ret); else protocols::EtherII(buffer); 
+                captured++;
             }
-            if (flag_outonly) {
-                if (memcmp(t->smac,self_mac,6) == 0) {
-                    if (flag_logfile)
-                        pfile.write_pkt(buffer,ret);
-                    else
-                        protocols::EtherII(buffer);
-                    continue;
-                }
-                captured--;
-                continue;
+        }
+        if (flag_outonly) {
+            if (memcmp(t->smac,self_mac,6) == 0) {
+                if (flag_logfile) pfile.write_pkt(buffer,ret); else protocols::EtherII(buffer); 
+                captured++;
             }
         }
     }
 
-
+    std::cout << "\rCaptured " << captured << " Frames" << std::endl;
     ifstr.ifr_ifru.ifru_flags = orig_flags;
     setIfaceFlags(s,&ifstr);
 
