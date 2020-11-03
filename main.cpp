@@ -116,7 +116,7 @@ int main(int argc, char **argv) {
 
     signal(SIGINT,sHandle);
 
-    PcapFile pfile;
+    pcap::PcapWriter pfile;
     eth_hdr* t = (eth_hdr*)buffer;
     if (flag_logfile) {
         pfile.open(logfile);
