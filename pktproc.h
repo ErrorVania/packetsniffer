@@ -58,7 +58,7 @@ namespace protocols {
         icmp_hdr* icmphdr = (icmp_hdr*)buf;
         cout << "(ICMP: Type " << (int)icmphdr->type << " Code " << (int)icmphdr->code << ", Rest: " << ntohl(icmphdr->rest) << ", Payload: " << (ntohs(iphdr->total_len) - iphdr->ihl*4 - sizeof(icmp_hdr)) << " bytes)";
     }
-    void ICMPv6(uint8_t* buf, const ip6_hdr* iphdr) {
+    void ICMP(uint8_t* buf, const ip6_hdr* iphdr) {
         icmp_hdr* icmphdr = (icmp_hdr*)buf;
         cout << "(ICMP: Type " << (int)icmphdr->type << " Code " << (int)icmphdr->code << ", Rest: " << ntohl(icmphdr->rest) << ", Payload: " << (ntohs(iphdr->length) - sizeof(icmp_hdr)) << " bytes)";
     }
@@ -66,7 +66,6 @@ namespace protocols {
     void IPv4(uint8_t* buf) {
 
         ip_hdr* iphdr = (ip_hdr*)buf;
-        //cout << " (IPv4: " << toip(&iphdr->src) << " > " << toip(&iphdr->dst) << ", Payload: " << ntohs(iphdr->total_len) - iphdr->ihl*4 << " bytes)";
         cout << "(IPv4: " << toip(&iphdr->src) << " > " << toip(&iphdr->dst) << ")";
 
         switch (iphdr->proto) {
@@ -82,6 +81,9 @@ namespace protocols {
                 cout << "|";
                 ICMP(buf + iphdr->ihl*4,iphdr);
                 break;
+            default:
+                cout << "| " << iphdr->proto;
+                break;
         }
 
     }
@@ -91,8 +93,7 @@ namespace protocols {
 
         cout << "(IPv6: " << toip6(&iphdr->src,b) << " > " << toip6(&iphdr->dst,b) << ")";
 
-        uint8_t proto = iphdr->next_header;
-        switch (proto) {
+        switch (iphdr->next_header) {
             case IPPROTO_UDP:
                 cout << "|";
                 UDP(buf + sizeof(ip6_hdr));
@@ -103,7 +104,10 @@ namespace protocols {
                 break;
             case IPPROTO_ICMPV6:
                 cout << "|";
-                ICMPv6(buf + sizeof(ip6_hdr), iphdr);
+                ICMP(buf + sizeof(ip6_hdr), iphdr);
+                break;
+            default:
+                cout << "| " << iphdr->next_header;
                 break;
         }
     }
@@ -111,7 +115,7 @@ namespace protocols {
 
     void ARP(uint8_t* buf) {
         arp_hdr* arphdr = (arp_hdr*)buf;
-        cout << " (ARP: ";
+        cout << "(ARP: ";
         if (htons(arphdr->htype) == 1)
             cout << "Ethernet "; //all other are irrelevant
         if (htons(arphdr->oper) == 1)
@@ -119,7 +123,7 @@ namespace protocols {
         else
             cout << "Reply,   ";
 
-        cout << tomac(arphdr->senderhardwareaddr) << "|" << toip((uint32_t*)&arphdr->senderprotoaddr) << " > " << tomac(arphdr->targethardwareaddr) << "/" << toip((uint32_t*)&arphdr->targetprotoaddr) << ")";
+        cout << tomac(arphdr->senderhardwareaddr) << "/" << toip((uint32_t*)&arphdr->senderprotoaddr) << " > " << tomac(arphdr->targethardwareaddr) << "/" << toip((uint32_t*)&arphdr->targetprotoaddr) << ")";
     }
 
 
