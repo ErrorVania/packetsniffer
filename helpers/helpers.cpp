@@ -1,12 +1,4 @@
-#pragma once
-
-
-#include <sys/ioctl.h>
-#include <net/if.h>
-#include <linux/if_packet.h>
-#include <stdio.h>
-#include <string.h>
-#include <iostream>
+#include "helpers.h"
 
 
 //writes and returns index of interface into ifstr

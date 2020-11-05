@@ -1,5 +1,8 @@
 #pragma once
 #include <iostream>
+#include <netinet/in.h>
+#include <endian.h>
+
 
 
 struct eth_hdr

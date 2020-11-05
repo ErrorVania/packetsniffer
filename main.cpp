@@ -1,14 +1,20 @@
-#include "netincl.h"
-#include "pcapmaker.h"
-#include "pktproc.h"
-#include "pcapmaker.h"
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <net/if.h>
+#include <netinet/ether.h>
+#include <linux/if_packet.h>
+#include <net/ethernet.h>
 #include <iostream>
 #include <cstdlib>
 #include <sys/ioctl.h>
 #include <unistd.h>
-#include "helpers.h"
 #include <signal.h>
-
+#include <string.h>
+#include <limits.h>
+#include "helpers.h"
+#include "pcapmaker.h"
+#include "pktproc.h"
 
 #define bufsiz 0xffff
 
@@ -50,7 +56,7 @@ int main(int argc, char **argv) {
                 flag_inonly = true;
                 break;
             case 'n':
-                maxcap = stoi(optarg);
+                maxcap = std::stoi(optarg);
                 flag_limit = true;
                 break;
             case 'h':
