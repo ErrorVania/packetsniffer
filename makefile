@@ -1,28 +1,30 @@
-.DEFAULT_GOAL := main
+.DEFAULT_GOAL := build
 compiler = g++
 cppver = c++17
 buildpath = binaries
 
 
 
-
+build: main
+	@${compiler} binaries/*.o -o packetsniffer
+	@echo "Linked Binaries"
 
 main: pcapmaker helpers pktproc main.cpp
-	@${compiler} -c -std=${cppver} main.cpp -o ${buildpath}/main.o
+	@${compiler} -c -std=${cppver} $@.cpp -o ${buildpath}/$@.o
 	@echo "Built main"
 
 
 pcapmaker: pcapmaker.cpp
-	@${compiler} -c -std=${cppver} pcapmaker/pcapmaker.cpp -o ${buildpath}/pcapmaker.o
+	@${compiler} -c -std=${cppver} $@.cpp -o ${buildpath}/$@.o
 	@echo "Built pcapmaker"
 
 helpers: helpers.cpp
-	@${compiler} -c -std=${cppver} helpers/helpers.cpp -o ${buildpath}/helpers.o
+	@${compiler} -c -std=${cppver} $@.cpp -o ${buildpath}/$@.o
 	@echo "Built helpers"
 
 pktproc: pktproc.cpp
-	@${compiler} -c -std=${cppver} pktproc/pktproc.cpp -o ${buildpath}/pktproc.o
+	@${compiler} -c -std=${cppver} $@.cpp -o ${buildpath}/$@.o
 	@echo "Built pktproc"
 
 clean:
-	rm binaries/*.o
+	rm binaries/*
