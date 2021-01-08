@@ -3,8 +3,8 @@
 
 #include <fstream>
 //#include <stdio.h>
-#include <chrono>
-
+//#include <chrono>
+#include <sys/time.h>
 namespace pcap {
     struct pcap_global_hdr {
         uint32_t magic;
@@ -26,7 +26,7 @@ namespace pcap {
     private:
         std::ofstream pcapfile;
         bool isopen;
-        std::chrono::_V2::steady_clock::time_point ts_start;
+        //std::chrono::_V2::steady_clock::time_point ts_start;
 
         void pcap_write_glob_hdr(std::ofstream& file) {
             pcap::pcap_global_hdr a;
@@ -56,15 +56,22 @@ namespace pcap {
             }
             isopen = true;
 
-            ts_start = std::chrono::steady_clock::now();
+            //ts_start = std::chrono::steady_clock::now();
             pcap_write_glob_hdr(pcapfile);
         }
 
         void write_pkt(void* buf, int len) {
             pcap::pcap_pak_hdr hdr;
-            auto ts_end = std::chrono::steady_clock::now();
+            /*auto ts_end = std::chrono::steady_clock::now();
             hdr.ts_sec = std::chrono::duration_cast<std::chrono::seconds>(ts_end-ts_start).count();
-            hdr.ts_usec = std::chrono::duration_cast<std::chrono::microseconds>(ts_end-ts_start).count();
+            hdr.ts_usec = std::chrono::duration_cast<std::chrono::microseconds>(ts_end-ts_start).count();*/
+            struct timeval tv;
+            gettimeofday(&tv,0);
+
+            hdr.ts_sec = tv.tv_sec;
+            hdr.ts_usec = tv.tv_usec;
+
+
             hdr.incl_len = hdr.orig_len = len;
             pcap_write_pkt(pcapfile,&hdr,buf,len);
         }
